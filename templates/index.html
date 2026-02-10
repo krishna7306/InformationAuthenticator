@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information Authenticator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e1e1e;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            background: #2a2a2a;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 25px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-section label {
+            display: block;
+            color: #e0e0e0;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            padding: 15px;
+            background: #1e1e1e;
+            border: 2px solid #3a3a3a;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #ffffff;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #5b9bd5;
+            background: #252525;
+        }
+
+        .input-section textarea::placeholder {
+            color: #6a6a6a;
+        }
+
+        .btn-check {
+            width: 100%;
+            background: linear-gradient(135deg, #5b9bd5, #4a8fc4);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(91, 155, 213, 0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .btn-check:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(91, 155, 213, 0.5);
+            background: linear-gradient(135deg, #6aabdb, #5b9bd5);
+        }
+
+        .btn-check:active {
+            transform: translateY(0);
+        }
+
+        .btn-check:disabled {
+            background: #3a3a3a;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: #6a6a6a;
+        }
+
+        .results-section {
+            margin-top: 35px;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #5b9bd5;
+        }
+
+        .spinner {
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #5b9bd5;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .confidence-card {
+            background: #ffffff;
+            color: #1e1e1e;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .summary-card {
+            background: #ffffff;
+            color: #1e1e1e;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #5b9bd5;
+        }
+
+        .summary-card h3 {
+            color: #1e1e1e;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .summary-card .summary-text {
+            color: #4a4a4a;
+            font-size: 15px;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        .confidence-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .confidence-header .icon {
+            font-size: 36px;
+        }
+
+        .confidence-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .confidence-details {
+            text-align: center;
+            color: #4a4a4a;
+        }
+
+        .confidence-level {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .confidence-level.not-supported {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .confidence-level.weak {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .confidence-level.moderate {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .confidence-level.strong {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .result-stats {
+            font-size: 14px;
+            color: #6a6a6a;
+            margin-top: 8px;
+        }
+
+        .not-found-card {
+            background: #ffffff;
+            color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .not-found-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .not-found-card h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #c62828;
+        }
+
+        .not-found-card p {
+            color: #6a6a6a;
+            font-size: 15px;
+        }
+
+        .papers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .paper-card {
+            background: #ffffff;
+            color: #1e1e1e;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 22px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .paper-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+            border-color: #5b9bd5;
+        }
+
+        .paper-card h3 {
+            color: #1e1e1e;
+            font-size: 18px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .paper-card .year {
+            display: inline-block;
+            background: #5b9bd5;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .paper-card .abstract {
+            color: #4a4a4a;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 12px 0;
+        }
+
+        .paper-card a {
+            color: #5b9bd5;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .paper-card a:hover {
+            color: #4a8fc4;
+            text-decoration: underline;
+        }
+
+        /* ============================================ */
+        /* CHATBOT STYLES */
+        /* ============================================ */
+
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #5b9bd5, #4a8fc4);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(91, 155, 213, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(91, 155, 213, 0.6);
+        }
+
+        .chatbot-container {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 380px;
+            height: 550px;
+            background: #2a2a2a;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 999;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbot-container.active {
+            display: flex;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #5b9bd5, #4a8fc4);
+            color: white;
+            padding: 20px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .chatbot-close:hover {
+            transform: scale(1.2);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chatbot-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chatbot-messages::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        .chatbot-messages::-webkit-scrollbar-thumb {
+            background: #5b9bd5;
+            border-radius: 3px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: #5b9bd5;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-bubble {
+            background: #3a3a3a;
+            color: #ffffff;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #5b9bd5;
+        }
+
+        .message.bot .message-avatar {
+            background: #4a8fc4;
+        }
+
+        .chatbot-input-area {
+            padding: 20px;
+            border-top: 1px solid #3a3a3a;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chatbot-input {
+            flex: 1;
+            padding: 12px;
+            background: #1e1e1e;
+            border: 2px solid #3a3a3a;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-input:focus {
+            outline: none;
+            border-color: #5b9bd5;
+            background: #252525;
+        }
+
+        .chatbot-input::placeholder {
+            color: #6a6a6a;
+        }
+
+        .chatbot-send {
+            background: linear-gradient(135deg, #5b9bd5, #4a8fc4);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(91, 155, 213, 0.4);
+        }
+
+        .chatbot-send:disabled {
+            background: #3a3a3a;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 12px 16px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #6a6a6a;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .input-section textarea {
+                min-height: 100px;
+            }
+
+            .confidence-header h2 {
+                font-size: 20px;
+            }
+
+            .chatbot-container {
+                width: calc(100% - 40px);
+                right: 20px;
+                bottom: 90px;
+                height: 500px;
+            }
+
+            .chatbot-toggle {
+                right: 20px;
+                bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Information Authenticator</h1>
+            <p>Verify claims with academic research</p>
+        </div>
+
+        <form id="verifyForm">
+            <div class="input-section">
+                <label for="statement">Enter a statement or claim to verify:</label>
+                <textarea 
+                    id="statement" 
+                    name="statement" 
+                    placeholder="e.g., Yoga improves mental health"
+                    required
+                ></textarea>
+            </div>
+
+            <button type="submit" class="btn-check" id="checkBtn">
+                Check Authenticity
+            </button>
+        </form>
+
+        <div id="results" class="results-section" style="display: none;"></div>
+    </div>
+
+    <!-- Chatbot Toggle Button -->
+    <button class="chatbot-toggle" id="chatbotToggle">💬</button>
+
+    <!-- Chatbot Container -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <div class="chatbot-header">
+            <h3>🤖 AI Assistant</h3>
+            <button class="chatbot-close" id="chatbotClose">×</button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot">
+                <div class="message-avatar">🤖</div>
+                <div class="message-bubble">
+                    Hi! I'm your AI assistant. Ask me anything about information verification, research papers, or how this app works!
+                </div>
+            </div>
+        </div>
+        <div class="chatbot-input-area">
+            <input 
+                type="text" 
+                class="chatbot-input" 
+                id="chatbotInput" 
+                placeholder="Type your message..."
+                autocomplete="off"
+            >
+            <button class="chatbot-send" id="chatbotSend">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // EXISTING VERIFICATION FORM LOGIC
+        // ============================================
+        const form = document.getElementById('verifyForm');
+        const resultsDiv = document.getElementById('results');
+        const checkBtn = document.getElementById('checkBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const statement = document.getElementById('statement').value.trim();
+            
+            if (!statement) {
+                alert('Please enter a statement to verify.');
+                return;
+            }
+
+            // Show loading state
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Checking authenticity...</div>
+                </div>
+            `;
+            
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Checking...';
+
+            try {
+                const formData = new FormData();
+                formData.append('statement', statement);
+
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="not-found-card">
+                        <div class="icon">⚠️</div>
+                        <h2>Error</h2>
+                        <p>Unable to verify the statement. Please try again.</p>
+                    </div>
+                `;
+                console.error('Error:', error);
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Check Authenticity';
+            }
+        });
+
+        function displayResults(data) {
+            if (data.found && data.results && data.results.length > 0) {
+                let papersHTML = data.results.map(paper => `
+                    <div class="paper-card">
+                        <h3>${escapeHtml(paper.title)}</h3>
+                        <span class="year">${escapeHtml(String(paper.year))}</span>
+                        <p class="abstract">${escapeHtml(paper.abstract)}</p>
+                        <a href="${escapeHtml(paper.url)}" target="_blank" rel="noopener noreferrer">
+                            Read Paper →
+                        </a>
+                    </div>
+                `).join('');
+
+                // Generate summary card HTML
+                let summaryHTML = '';
+                if (data.summary && data.summary !== 'No research papers found to generate a summary.') {
+                    summaryHTML = `
+                        <div class="summary-card">
+                            <h3>📄 AI Research Summary</h3>
+                            <div class="summary-text">${escapeHtml(data.summary)}</div>
+                        </div>
+                    `;
+                }
+
+                resultsDiv.innerHTML = `
+                    <div class="confidence-card">
+                        <div class="confidence-header">
+                            <span class="icon">${data.confidence === 'Not supported' ? '⚠️' : '✅'}</span>
+                            <h2>Verification Complete</h2>
+                        </div>
+                        <div class="confidence-details">
+                            <div class="confidence-level ${getConfidenceClass(data.confidence)}">
+                                ${data.confidence}
+                            </div>
+                            <div class="result-stats">
+                                Found ${data.result_count} supporting research paper${data.result_count !== 1 ? 's' : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${summaryHTML}
+                    <div class="papers-list">
+                        ${papersHTML}
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="not-found-card">
+                        <div class="icon">⚠️</div>
+                        <h2>No Supporting Research Found</h2>
+                        <p>This claim could not be verified with academic sources. Please verify through other trusted channels.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function getConfidenceClass(confidence) {
+            const map = {
+                'Not supported': 'not-supported',
+                'Weak Evidence': 'weak',
+                'Moderate Evidence': 'moderate',
+                'Strong Evidence': 'strong'
+            };
+            return map[confidence] || 'not-supported';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // CHATBOT FUNCTIONALITY
+        // ============================================
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        const chatbotContainer = document.getElementById('chatbotContainer');
+        const chatbotClose = document.getElementById('chatbotClose');
+        const chatbotMessages = document.getElementById('chatbotMessages');
+        const chatbotInput = document.getElementById('chatbotInput');
+        const chatbotSend = document.getElementById('chatbotSend');
+
+        // Toggle chatbot visibility
+        chatbotToggle.addEventListener('click', () => {
+            chatbotContainer.classList.add('active');
+            chatbotInput.focus();
+        });
+
+        chatbotClose.addEventListener('click', () => {
+            chatbotContainer.classList.remove('active');
+        });
+
+        // Send message function
+        async function sendMessage() {
+            const message = chatbotInput.value.trim();
+            
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            chatbotInput.value = '';
+            chatbotSend.disabled = true;
+
+            // Show typing indicator
+            const typingId = showTypingIndicator();
+
+            try {
+                const response = await fetch('/chatbot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                
+                // Remove typing indicator
+                removeTypingIndicator(typingId);
+
+                // Add bot response
+                if (data.reply) {
+                    addMessage(data.reply, 'bot');
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                }
+            } catch (error) {
+                removeTypingIndicator(typingId);
+                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                console.error('Chatbot error:', error);
+            } finally {
+                chatbotSend.disabled = false;
+                chatbotInput.focus();
+            }
+        }
+
+        // Add message to chat
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? '👤' : '🤖';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            chatbotMessages.appendChild(messageDiv);
+            
+            // Auto-scroll to bottom
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typing-indicator';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🤖';
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'message-bubble';
+            indicator.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(indicator);
+            chatbotMessages.appendChild(typingDiv);
+            
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            
+            return 'typing-indicator';
+        }
+
+        // Remove typing indicator
+        function removeTypingIndicator(id) {
+            const typingDiv = document.getElementById(id);
+            if (typingDiv) {
+                typingDiv.remove();
+            }
+        }
+
+        // Event listeners
+        chatbotSend.addEventListener('click', sendMessage);
+        
+        chatbotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
